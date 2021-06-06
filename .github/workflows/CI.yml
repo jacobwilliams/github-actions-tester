@@ -1,0 +1,33 @@
+name: CI
+
+on: [push]
+
+jobs:
+
+  Build:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest]
+
+    steps:
+
+    - name: Set vars
+      id: vars
+      run: echo ::set-output name=tag::${GITHUB_REF#refs/*/}
+
+    - name: Checkout code
+      uses: actions/checkout@v2
+      with:
+        submodules: recursive
+
+    - name: Deploy documentation for tagged release
+      env:
+        TAGNAME: ${{ steps.vars.outputs.tag }}
+      if: startsWith(github.ref, 'refs/tags/')
+      uses: JamesIves/github-pages-deploy-action@4.1.3
+      with:
+        branch: gh-pages # The branch the action should deploy to.
+        folder: doc  # The folder the action should deploy.
+        target-folder: tags/${{ steps.vars.outputs.tag }}  # deploy to a version-specific folder
